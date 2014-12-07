@@ -42,6 +42,10 @@ std::vector<int> ParsePolygonFace(const char* line){
 }
 
 
+bool LoadOBJModel(std::string path,
+                  ObjModel& model){
+  return LoadOBJModel(path.c_str(), model);
+}
 
 bool LoadOBJModel(const char * path,
                   ObjModel & model){

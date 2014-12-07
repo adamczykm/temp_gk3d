@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <glm/glm.hpp>
-
+#include <string>
 
 struct ObjModel{
   std::vector<glm::vec3> vertices;
@@ -17,6 +17,10 @@ struct ObjModel{
   }
 
 };
+
+bool LoadOBJModel(std::string path,
+                  ObjModel& model);
+
 
 bool LoadOBJModel(const char * path,
                   ObjModel& model);

@@ -1,3 +1,4 @@
+ASSETS_DIR=assets
 INCLUDE_DIR=include
 OBJ_DIR=obj
 DEST_DIR=bin
@@ -7,16 +8,15 @@ CXX=g++
 CC=gcc
 DEBUG_OPTIONS=-std=c++11 -g -Wall -Werror
 RELEASE_OPTIONS=-std=c++11-O2 -Wall
-GLFLAGS=-lglut -lGL
-CFLAGS=-I./${INCLUDE_DIR}
+GLFLAGS=-lglut -lGL -lglfw -lGLEW
+CFLAGS=-I./${INCLUDE_DIR} -DASSETS=\"${CURDIR}/${ASSETS_DIR}\"
 
 
-_HEADERS = dbg.h obj_model.hpp zad1_demo.hpp
+_HEADERS = dbg.h assets.hpp obj_model.hpp zad1_demo.hpp
 HEADERS = $(patsubst %,${INCLUDE_DIR}/%,${_HEADERS})
 
-_OBJ = obj_model.o zad1_demo.o main.o
+_OBJ = assets.o obj_model.o zad1_demo.o main.o
 OBJ = $(patsubst %,${OBJ_DIR}/%,${_OBJ})
-
 
 
 # ---------------------------
