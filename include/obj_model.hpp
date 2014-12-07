@@ -19,11 +19,13 @@ struct ObjModel{
 };
 
 bool LoadOBJModel(std::string path,
-                  ObjModel& model);
+                  ObjModel& model,
+                  bool computeNormals=true);
 
 
 bool LoadOBJModel(const char * path,
-                  ObjModel& model);
+                  ObjModel& model,
+                  bool computeNormals=true);
 
 
 #endif

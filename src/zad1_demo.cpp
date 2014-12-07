@@ -1,6 +1,7 @@
 #include "assets.hpp"
 #include "zad1_demo.hpp"
 #include "obj_model.hpp"
+#include "shader_loader.hpp"
 
 #include "dbg.h"
 
@@ -71,9 +72,87 @@ GLFWwindow* InitGLWindow(){
 
 
 int Run(){
+  auto window = InitGLWindow();
+
+  // ------------------ Init Vertex Array
+  GLuint VertexArrayID;
+  glGenVertexArrays(1, &VertexArrayID);
+  glBindVertexArray(VertexArrayID);
+
+
+  // ----------------------- SHADERS
+  std::string vs_path = GetPathForAsset("test.vertexshader");
+  std::string fs_path = GetPathForAsset("test.fragmentshader");
+
+  auto shaders = LoadShaders(vs_path.c_str(), fs_path.c_str());
+  auto shader_mvp = glGetUniformLocation(shaders, "mvp");
+
+  // ----------------------- MODEL
   ObjModel model;
   if(!LoadOBJModel(GetPathForAsset("chair_simple.obj"), model)){
     return 1;
   }
+
+  // model vertices vbo
+  GLuint vertex_buffer;
+  const auto vertex_buffer_index=1;
+  glGenBuffers(vertex_buffer_index, &vertex_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+  glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(glm::vec3), &model.vertices[0], GL_STATIC_DRAW);
+
+
+  // mvp
+  auto position = glm::vec3( 25, 10, 50 );
+  auto direction = glm::vec3( -0.5, -0.2, -1);
+  auto up = glm::vec3(0,1,0);
+  glm::mat4 ViewMatrix = glm::lookAt(position, position+direction, up);
+  glm::mat4 ProjectionMatrix = glm::perspective(50.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+  glm::mat4 ModelMatrix = glm::mat4(1.0);
+
+  glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+  // ---------------------- GL DRAW LOOP
+
+  do{
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders);
+    glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &MVP[0][0]);
+
+    // 1rst attribute buffer : vertices
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glVertexAttribPointer(
+        0,                  // attribute
+        3,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        0,                  // stride
+        (void*)0            // array buffer offset
+    );
+
+    // Draw the triangle !
+    glDrawArrays(GL_TRIANGLES, 0, model.vertices.size() );
+
+    glDisableVertexAttribArray(0);
+
+    // Swap buffers
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+
+  } // Check if the ESC key was pressed or the window was closed
+  while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
+    glfwWindowShouldClose(window) == 0 );
+
+
+  // --------------------- CLEANUP
+
+  glDeleteBuffers(vertex_buffer_index, &vertex_buffer);
+  glDeleteProgram(shaders);
+  glDeleteVertexArrays(1, &VertexArrayID);
+
+  // Close OpenGL window and terminate GLFW
+  glfwTerminate();
+
   return 0;
 }

@@ -1,5 +1,5 @@
 #include "assets.hpp"
-
+#include <string>
 std::string GetPathForAsset(std::string str){
   return std::string(ASSETS) + "/" + str;
 }
