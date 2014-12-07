@@ -10,13 +10,16 @@ struct ObjModel{
 
   std::vector<glm::vec3> normals;
 
-  bool hasTextures;
   std::vector<glm::vec2> uvs;
+
+  bool hasTextures(){
+    return !uvs.empty();
+  }
 
 };
 
 bool LoadOBJModel(const char * path,
-                  const ObjModel& model);
+                  ObjModel& model);
 
 
 #endif

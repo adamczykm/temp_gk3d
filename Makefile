@@ -5,8 +5,8 @@ SRC_DIR=src
 
 CXX=g++
 CC=gcc
-DEBUG_OPTIONS=-g -Wall -Werror
-RELEASE_OPTIONS=-O2 -Wall
+DEBUG_OPTIONS=-std=c++11 -g -Wall -Werror
+RELEASE_OPTIONS=-std=c++11-O2 -Wall
 GLFLAGS=-lglut -lGL
 CFLAGS=-I./${INCLUDE_DIR}
 
