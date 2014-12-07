@@ -11,10 +11,10 @@ GLFLAGS=-lglut -lGL
 CFLAGS=-I./${INCLUDE_DIR}
 
 
-_HEADERS = obj_model.hpp dbg.h
+_HEADERS = dbg.h obj_model.hpp zad1_demo.hpp
 HEADERS = $(patsubst %,${INCLUDE_DIR}/%,${_HEADERS})
 
-_OBJ = obj_model.o main.o
+_OBJ = obj_model.o zad1_demo.o main.o
 OBJ = $(patsubst %,${OBJ_DIR}/%,${_OBJ})
 
 

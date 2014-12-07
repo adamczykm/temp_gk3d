@@ -10,7 +10,6 @@ using namespace std;
 std::vector<int> ParsePolygonFace(const char* line){
   std::vector<int> ret;
   char c;
-  //printf("%c",line[0]);
   int i=0;
   while((c=line[i])!='\0' || c!='\n'){
     if(c==' '){
