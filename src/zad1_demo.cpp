@@ -2,6 +2,8 @@
 #include "zad1_demo.hpp"
 #include "obj_model.hpp"
 #include "shader_loader.hpp"
+#include "camera.hpp"
+#include "controls.hpp"
 
 #include "dbg.h"
 
@@ -74,6 +76,13 @@ GLFWwindow* InitGLWindow(){
 int Run(){
   auto window = InitGLWindow();
 
+  // ------------------ Camera & Controls
+
+  auto camera = Camera();
+  auto controls = Controls(window, W_WIDTH, W_HEIGHT);
+  glm::vec3 translation;
+  float yaw, pitch, roll;
+
   // ------------------ Init Vertex Array
   GLuint VertexArrayID;
   glGenVertexArrays(1, &VertexArrayID);
@@ -102,18 +111,23 @@ int Run(){
 
 
   // mvp
-  auto position = glm::vec3( 25, 10, 50 );
-  auto direction = glm::vec3( -0.5, -0.2, -1);
-  auto up = glm::vec3(0,1,0);
-  glm::mat4 ViewMatrix = glm::lookAt(position, position+direction, up);
-  glm::mat4 ProjectionMatrix = glm::perspective(50.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+  glm::mat4 ViewMatrix;
+  glm::mat4 ProjectionMatrix = camera.GetProjectionMatrix();
   glm::mat4 ModelMatrix = glm::mat4(1.0);
-
-  glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+  glm::mat4 MVP;
 
   // ---------------------- GL DRAW LOOP
 
   do{
+
+    yaw = pitch = roll = 0;
+    // controls && mvp
+    controls.GetMovementFromInputs(translation, yaw, pitch, roll);
+    camera.TranslateCamera(translation);
+    camera.RotateCamera(yaw, pitch, roll);
+
+    ViewMatrix = camera.GetViewMatrix();
+    MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders);
