@@ -167,20 +167,20 @@ bool LoadCuboidModel(float width, float height, float depth,
   };
 
   vector<int> triangles;
-  PushTriangle(triangles, 0, 1, 3);
-  PushTriangle(triangles, 1, 2, 3);
-  PushTriangle(triangles, 4, 5, 7);
-  PushTriangle(triangles, 5, 6, 7);
+  PushTriangle(triangles, 0, 1, 2);
+  PushTriangle(triangles, 2, 1, 3);
+  PushTriangle(triangles, 1, 5, 3);
+  PushTriangle(triangles, 3, 5, 7);
 
-  PushTriangle(triangles, 0, 1, 4);
-  PushTriangle(triangles, 1, 5, 4);
-  PushTriangle(triangles, 2, 3, 6);
-  PushTriangle(triangles, 3, 7, 6);
+  PushTriangle(triangles, 0, 4, 1);
+  PushTriangle(triangles, 1, 4, 5);
+  PushTriangle(triangles, 3, 7, 2);
+  PushTriangle(triangles, 2, 7, 6);
 
-  PushTriangle(triangles, 3, 0, 7);
-  PushTriangle(triangles, 0, 4, 7);
-  PushTriangle(triangles, 1, 2, 5);
-  PushTriangle(triangles, 2, 6, 5);
+  PushTriangle(triangles, 5, 4, 7);
+  PushTriangle(triangles, 7, 4, 6);
+  PushTriangle(triangles, 4, 0, 6);
+  PushTriangle(triangles, 6, 0, 2);
 
   for(auto i : triangles){
     model.vertices.push_back(vertices[i]);
