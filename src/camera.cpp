@@ -15,7 +15,7 @@ void Camera::ResetCamera(){
   _up = vec3(0,1,0);
   _right = vec3(1,0,0);
 
-  _projectionMatrix = perspective(50.0f, 4.0f / 3.0f, 0.1f, 500.0f);
+  _projectionMatrix = perspective(50.0f, 16.0f / 9.0f, 0.1f, 500.0f);
 }
 
 void Camera::TranslateCamera(vec3 translation){

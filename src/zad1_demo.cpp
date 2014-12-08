@@ -98,20 +98,29 @@ int Run(){
 
   // ----------------------- MODEL
   ObjModel model;
-  // if(!LoadOBJModel(GetPathForAsset("chair_simple.obj"), model)){
-  //   return 1;
-  // }
-  if(!LoadCuboidModel(40,20,20,model)){
+  if(!LoadOBJModel(GetPathForAsset("Vitra03.obj"), model)){
     return 1;
   }
+  // if(!LoadCuboidModel(40,20,20,model)){
+  //   return 1;
+  // }
 
-  // model vertices vbo
-  GLuint vertex_buffer;
-  const auto vertex_buffer_index=1;
-  glGenBuffers(vertex_buffer_index, &vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+  // VBO
+  GLuint vertexbuffer;
+  glGenBuffers(1, &vertexbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
   glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(glm::vec3), &model.vertices[0], GL_STATIC_DRAW);
 
+  GLuint normalbuffer;
+  glGenBuffers(1, &normalbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+  glBufferData(GL_ARRAY_BUFFER, model.normals.size() * sizeof(glm::vec3), &model.normals[0], GL_STATIC_DRAW);
+
+  GLuint elementbuffer;
+  glGenBuffers(1, &elementbuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indices.size() * sizeof(unsigned short), &model.indices[0] , GL_STATIC_DRAW);
+  //
 
   // mvp
   glm::mat4 ViewMatrix;
@@ -120,7 +129,8 @@ int Run(){
   glm::mat4 MVP;
 
   // ---------------------- GL DRAW LOOP
-
+  auto nbFrames = 0;
+  auto lastTime = glfwGetTime();
   do{
 
     yaw = pitch = roll = 0;
@@ -132,26 +142,54 @@ int Run(){
     ViewMatrix = camera.GetViewMatrix();
     MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
+    // Measure speed
+    double currentTime = glfwGetTime();
+    nbFrames++;
+    if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1sec ago
+      printf("%d fps\n", nbFrames);
+      nbFrames = 0;
+      lastTime += 1.0;
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders);
     glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &MVP[0][0]);
 
-    // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glVertexAttribPointer(
-        0,                  // attribute
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        (void*)0            // array buffer offset
-    );
+                          0,                  // attribute
+                          3,                  // size
+                          GL_FLOAT,           // type
+                          GL_FALSE,           // normalized?
+                          0,                  // stride
+                          (void*)0            // array buffer offset
+                          );
 
-    // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, model.vertices.size() );
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glVertexAttribPointer(
+                          1,                                // attribute
+                          3,                                // size
+                          GL_FLOAT,                         // type
+                          GL_FALSE,                         // normalized?
+                          0,                                // stride
+                          (void*)0                          // array buffer offset
+                          );
+
+    // Index buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+    // Draw the triangles !
+    glDrawElements(
+                   GL_TRIANGLES,      // mode
+                   model.indices.size(),    // count
+                   GL_UNSIGNED_SHORT,   // type
+                   (void*)0           // element array buffer offset
+                   );
 
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
     // Swap buffers
     glfwSwapBuffers(window);
@@ -164,7 +202,10 @@ int Run(){
 
   // --------------------- CLEANUP
 
-  glDeleteBuffers(vertex_buffer_index, &vertex_buffer);
+  glDeleteBuffers(1, &vertexbuffer);
+  glDeleteBuffers(1, &normalbuffer);
+  glDeleteBuffers(1, &elementbuffer);
+
   glDeleteProgram(shaders);
   glDeleteVertexArrays(1, &VertexArrayID);
 
