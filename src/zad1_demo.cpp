@@ -65,7 +65,7 @@ GLFWwindow* InitGLWindow(){
   glDepthFunc(GL_LESS);
 
   // Cull triangles which normal is not towards the camera
-  glEnable(GL_CULL_FACE);
+  // glEnable(GL_CULL_FACE);
   return window;
 }
 
@@ -98,7 +98,10 @@ int Run(){
 
   // ----------------------- MODEL
   ObjModel model;
-  if(!LoadOBJModel(GetPathForAsset("chair_simple.obj"), model)){
+  // if(!LoadOBJModel(GetPathForAsset("chair_simple.obj"), model)){
+  //   return 1;
+  // }
+  if(!LoadCuboidModel(40,20,20,model)){
     return 1;
   }
 

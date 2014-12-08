@@ -27,5 +27,8 @@ bool LoadOBJModel(const char * path,
                   ObjModel& model,
                   bool computeNormals=true);
 
+bool LoadCuboidModel(float width, float height, float depth,
+                     ObjModel& model, bool computeNormals=true);
+
 
 #endif
