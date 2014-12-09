@@ -1,11 +1,32 @@
 #version 330 core
 
-layout(location = 0) in vec3 vertexPosition_modelspace;
+// in
+layout(location = 0) in vec3 v_position_model;
+layout(location = 1) in vec3 v_normal_model;
 
-uniform mat4 mvp;
+// out
+out vec3 position_world;
+out vec3 normal_camera;
+out vec3 eyedir_camera;
+out vec3 lightdir_camera;
+
+
+// Values that stay constant for the whole mesh.
+uniform mat4 MVP;
+uniform mat4 V;
+uniform mat4 M;
+uniform vec3 lightpos_world;
 
 void main(){
+	gl_Position =  MVP * vec4(v_position_model, 1);
 
-	gl_Position = mvp * vec4(vertexPosition_modelspace,1);
+        position_world = (M * vec4(v_position_model, 1)).xyz;
 
+	vec3 position_camera = ( V * M * vec4(v_position_model, 1)).xyz;
+	eyedir_camera = vec3(0,0,0) - position_camera;
+
+        vec3 light_position_camera = ( V * vec4(lightpos_world, 1)).xyz;
+	lightdir_camera = light_position_camera + eyedir_camera;
+
+        normal_camera = ( V * M * vec4(v_normal_model, 0)).xyz;
 }

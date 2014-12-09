@@ -94,10 +94,15 @@ int Run(){
   std::string fs_path = GetPathForAsset("test.fragmentshader");
 
   auto shaders = LoadShaders(vs_path.c_str(), fs_path.c_str());
-  auto shader_mvp = glGetUniformLocation(shaders, "mvp");
-
+  auto shader_mvp = glGetUniformLocation(shaders, "MVP");
+  auto shader_v = glGetUniformLocation(shaders, "V");
+  auto shader_m = glGetUniformLocation(shaders, "M");
+  auto shader_light = glGetUniformLocation(shaders, "lightpos_world");
   // ----------------------- MODEL
   ObjModel model;
+  // if(!LoadOBJModel(GetPathForAsset("chair_simple.obj"), model)){
+  //   return 1;
+  // }
   if(!LoadOBJModel(GetPathForAsset("Vitra03.obj"), model)){
     return 1;
   }
@@ -123,10 +128,11 @@ int Run(){
   //
 
   // mvp
-  glm::mat4 ViewMatrix;
-  glm::mat4 ProjectionMatrix = camera.GetProjectionMatrix();
-  glm::mat4 ModelMatrix = glm::mat4(1.0);
+  glm::mat4 V;
+  glm::mat4 P = camera.GetProjectionMatrix();
+  glm::mat4 M = glm::mat4(1.0);
   glm::mat4 MVP;
+  glm::vec3 lightPos = glm::vec3(0,70,-50);
 
   // ---------------------- GL DRAW LOOP
   auto nbFrames = 0;
@@ -139,8 +145,8 @@ int Run(){
     camera.TranslateCamera(translation);
     camera.RotateCamera(yaw, pitch, roll);
 
-    ViewMatrix = camera.GetViewMatrix();
-    MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+    V = camera.GetViewMatrix();
+    MVP = P * V * M;
 
     // Measure speed
     double currentTime = glfwGetTime();
@@ -154,6 +160,9 @@ int Run(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders);
     glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(shader_m, 1, GL_FALSE, &M[0][0]);
+    glUniformMatrix4fv(shader_v, 1, GL_FALSE, &V[0][0]);
+    glUniform3f(shader_light, lightPos.x, lightPos.y, lightPos.z);
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
