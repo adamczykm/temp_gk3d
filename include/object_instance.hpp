@@ -13,7 +13,7 @@ struct PhongColor{
   inline PhongColor(vec3 diffuse, vec3 ambient, vec3 specular) :
     Ambient(ambient), Diffuse(diffuse), Specular(specular) {}
 
-  inline PhongColor(vec3 color, vec3 lightColor, float specular=.2, float ambient=.15f) :
+  inline PhongColor(vec3 color, vec3 lightColor, float specular=.2f, float ambient=.15f) :
     Ambient(ambient*color), Diffuse(color), Specular(specular*lightColor) {}
 };
 

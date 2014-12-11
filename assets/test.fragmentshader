@@ -49,7 +49,7 @@ void main(){
     // Ambient : simulates indirect lighting
     ambient +
     // Diffuse : "color" of the object
-    diffuse * lightcol * lightpow * cos_theta / (distance*distance) +
+    diffuse  * lightcol * lightpow * cos_theta / (distance*distance) +
     // Specular : reflective highlight, like a mirror
     specular * lightcol * lightpow * pow(cos_alpha,5) / (distance*distance);
 

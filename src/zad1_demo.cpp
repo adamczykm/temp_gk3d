@@ -28,18 +28,18 @@ void InitVbo(VBO & vbo);
 
 void DrawTriangles(VBO & vbo, const Model & geometry,
                    std::vector<ObjectInstance> & instances,
-                   Shader shader, glm::mat4 & P, glm::mat4 & V);
+                   Shader & shader, glm::mat4 & P, glm::mat4 & V);
 
 void DrawTriangles(VBO & vbo, const Model & geometry,
                    ObjectInstance & instance,
-                   Shader shader, glm::mat4 & P, glm::mat4 & V);
+                   Shader & shader, glm::mat4 & P, glm::mat4 & V);
 
 
 void CleanVbo(VBO & vbo);
 
 GLFWwindow* InitGLWindow();
 
-glm::mat4 GetViewMatrixFromInputs(Camera camera, Controls controls);
+glm::mat4 GetViewMatrixFromInputs(Camera & camera, Controls & controls);
 
 int Run(){
 
@@ -49,7 +49,6 @@ int Run(){
 
   auto camera = Camera();
   auto controls = Controls(window, W_WIDTH, W_HEIGHT);
-
 
   // ------------------ Init Vertex Array
 
@@ -65,8 +64,11 @@ int Run(){
 
   Shader shader(vs_path, fs_path);
   glm::vec3 light_color(1.0,1.0,0.85);
-  glm::vec3 lightpos(0,0,0);
+  glm::vec3 lightpos(0,5,0);
+  float lightpow = 200.0f;
 
+  shader.BindParameter("lightpow", lightpow);
+  shader.BindParameter("lightcol", light_color);
   shader.BindParameter("lightpos_world", lightpos);
 
   // ----------------------- MODELS
@@ -113,6 +115,8 @@ int Run(){
 
   // ---------------------- GL DRAW LOOP ----------------------
   do{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
     InitVbo(vbo); // <------------ attribarrays
 
@@ -168,11 +172,10 @@ int Run(){
 }
 
 
-glm::mat4 GetViewMatrixFromInputs(Camera camera, Controls controls){
+glm::mat4 GetViewMatrixFromInputs(Camera & camera, Controls & controls){
 
-    float yaw, pitch, roll;
-    glm::vec3 translation;
-
+    float yaw=0., pitch=0., roll=0.;
+    vec3 translation(0);
     controls.GetMovementFromInputs(translation, yaw, pitch, roll);
     camera.TranslateCamera(translation);
 
@@ -215,7 +218,6 @@ void InitVbo(VBO & vbo){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.ElementBuffer);
 
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 
@@ -228,7 +230,7 @@ void CleanVbo(VBO & vbo){
 
 void DrawTriangles(VBO & vbo, const Model & geometry,
                    ObjectInstance & instance,
-                   Shader shader, glm::mat4 & V, glm::mat4 & P){
+                   Shader & shader, glm::mat4 & V, glm::mat4 & P){
 
     std::vector<ObjectInstance> tmp;
     tmp.push_back(instance);
@@ -239,7 +241,7 @@ void DrawTriangles(VBO & vbo, const Model & geometry,
 
 void DrawTriangles(VBO & vbo, const Model & geometry,
                    std::vector<ObjectInstance> & instances,
-                   Shader shader, glm::mat4 & V, glm::mat4 & P){
+                   Shader & shader, glm::mat4 & V, glm::mat4 & P){
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo.VertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, geometry.Vertices.size() * sizeof(glm::vec3), &geometry.Vertices[0], GL_STATIC_DRAW);
@@ -254,7 +256,9 @@ void DrawTriangles(VBO & vbo, const Model & geometry,
 
        const auto & M = instance.PosM;
 
-       shader.BindParameter("MVP", P * V * M);
+       auto VM = V * M;
+       shader.BindParameter("MV", VM);
+       shader.BindParameter("MVP", P * VM);
        shader.BindParameter("M", M);
        shader.BindParameter("ambient", instance.Color.Ambient);
        shader.BindParameter("diffuse", instance.Color.Diffuse);
@@ -270,12 +274,6 @@ void DrawTriangles(VBO & vbo, const Model & geometry,
 
     }
 }
-
-    // glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &MVP[0][0]);
-    // glUniformMatrix4fv(shader_m, 1, GL_FALSE, &M[0][0]);
-    // glUniformMatrix4fv(shader_v, 1, GL_FALSE, &V[0][0]);
-    // glUniform3f(shader_light, lightPos.x, lightPos.y, lightPos.z);
-
 
 GLFWwindow* InitGLWindow(){
     // Initialise GLFW

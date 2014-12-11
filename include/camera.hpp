@@ -24,7 +24,7 @@ public:
   void PrintUp(){
     printf("%f %f %f",_up.x, _up.y, _up.z);
   }
-  void TranslateCamera(glm::vec3 translation);
+  void TranslateCamera(const glm::vec3 & translation);
   void RotateCamera(float yaw, float pitch);
   void RollCamera(float roll);
 

@@ -4,7 +4,7 @@
 
 class Controls{
   GLFWwindow* _window;
-  double _lastTime;
+  double _lastTime = 0.0f;
   int _screenWidth;
   int _screenHeight;
 public:

@@ -9,7 +9,7 @@ Camera::Camera(){
 
 void Camera::ResetCamera(){
   _rot = quat(1,0,0,0);
-  _pos = vec3( 0, 0, 10. );
+  _pos = vec3( 0, 0, 20. );
 
   _eye = vec3( 0, 0, -1);
   _up = vec3(0,1,0);
@@ -18,7 +18,7 @@ void Camera::ResetCamera(){
   _projectionMatrix = perspective(45.0f, 16.0f / 9.0f, 0.1f, 5000.0f);
 }
 
-void Camera::TranslateCamera(vec3 translation){
+void Camera::TranslateCamera(const vec3 & translation){
   _pos += translation.z * _eye
     + translation.x * _right
     + translation.y * cross(_right, _eye);
