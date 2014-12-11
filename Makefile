@@ -12,10 +12,10 @@ GLFLAGS=-lglut -lGL -lglfw -lGLEW
 CFLAGS=-I./${INCLUDE_DIR} -DASSETS=\"${CURDIR}/${ASSETS_DIR}\"
 
 
-_HEADERS = dbg.h controls.hpp camera.hpp shader_loader.hpp assets.hpp obj_model.hpp zad1_demo.hpp
+_HEADERS = dbg.h object_instance.hpp controls.hpp camera.hpp shader.hpp assets.hpp model.hpp zad1_demo.hpp
 HEADERS = $(patsubst %,${INCLUDE_DIR}/%,${_HEADERS})
 
-_OBJ = controls.o camera.o shader_loader.o assets.o obj_model.o zad1_demo.o main.o
+_OBJ = controls.o camera.o shader.o assets.o model.o zad1_demo.o main.o
 OBJ = $(patsubst %,${OBJ_DIR}/%,${_OBJ})
 
 

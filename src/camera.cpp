@@ -9,32 +9,35 @@ Camera::Camera(){
 
 void Camera::ResetCamera(){
   _rot = quat(1,0,0,0);
-  _pos = vec3( 0, 0, 45. );
+  _pos = vec3( 0, 0, 10. );
 
   _eye = vec3( 0, 0, -1);
   _up = vec3(0,1,0);
   _right = vec3(1,0,0);
 
-  _projectionMatrix = perspective(50.0f, 16.0f / 9.0f, 0.1f, 500.0f);
+  _projectionMatrix = perspective(45.0f, 16.0f / 9.0f, 0.1f, 5000.0f);
 }
 
 void Camera::TranslateCamera(vec3 translation){
   _pos += translation.z * _eye
-          + translation.x * _right
-          + translation.y * _up;
+    + translation.x * _right
+    + translation.y * cross(_right, _eye);
 }
 
-void Camera::RotateCamera(float yaw, float pitch, float roll){
-  _rot = cross(quat(1,0,0,0), angleAxis(yaw, _right));
-  _rot = cross(_rot, angleAxis(pitch, _up));
-  _rot = cross(_rot, angleAxis(roll, _eye));
-
+void Camera::RollCamera(float roll){
+  _rot = cross(angleAxis(roll, _eye),quat(1,0,0,0));
   _rot = normalize(_rot);
+  _up = _rot * _up; //rotate(_rot, _up);
+  _right = normalize(cross(_eye,_up));
+  printf("%f %f %f",_up[0],_up[1],_up[2]);
+}
+
+void Camera::RotateCamera(float yaw, float pitch){
+  _rot = normalize(cross(quat(1,0,0,0), angleAxis(pitch, _up)));
+  _rot = normalize(cross(_rot, angleAxis(yaw, _right)));
 
   _right = _rot * _right; //rotate(_rot, _right);
   _eye = _rot * _eye; // rotate(_rot, _eye);
-  _up = _rot * _up; //rotate(_rot, _up);
-
 }
 
 mat4 Camera::GetViewMatrix(){

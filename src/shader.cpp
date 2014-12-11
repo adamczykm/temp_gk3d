@@ -1,4 +1,5 @@
-#include "shader_loader.hpp"
+#include "shader.hpp"
+#include <glm/glm.hpp>
 
 #include "dbg.h"
 
@@ -13,7 +14,22 @@ using namespace std;
 #include <stdlib.h>
 #include <string.h>
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path){
+void Shader::BindParameter(const char* key, float value){
+    auto location = glGetUniformLocation(Index, key);
+    glUniform1f(location, value);
+}
+
+void Shader::BindParameter(const char* key, glm::vec3 value){
+    auto location = glGetUniformLocation(Index, key);
+    glUniform3f(location, value.x, value.y, value.z);
+}
+
+void Shader::BindParameter(const char* key, glm::mat4 value){
+    auto location = glGetUniformLocation(Index, key);
+    glUniformMatrix4fv(location, 1, GL_FALSE, &(value[0][0]));
+}
+
+Shader::Shader(const char * vertex_file_path, const char * fragment_file_path){
 
   // Create the shaders
   GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -30,7 +46,6 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
   }else{
     log_err("Couldn't open %s.", vertex_file_path);
     getchar();
-    return 0;
   }
 
   // Read the Fragment Shader code from the file
@@ -93,5 +108,5 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
   glDeleteShader(VertexShaderID);
   glDeleteShader(FragmentShaderID);
 
-  return ProgramID;
+  Index = ProgramID;
 }

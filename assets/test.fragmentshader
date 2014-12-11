@@ -10,17 +10,14 @@ out vec3 color;
 uniform mat4 MV;
 uniform vec3 lightpos_world;
 
+uniform vec3 diffuse;
+uniform vec3 ambient;
+uniform vec3 specular;
+
+uniform vec3 lightcol;
+uniform float lightpow;
 
 void main(){
-  // Light emission properties
-  // You probably want to put them as uniforms
-  vec3 lightcol = vec3(1,1,1);
-  float lightpow = 1000.0f;
-
-  // Material properties
-  vec3 diffuse = vec3(0.9, 0.1, 0.1);
-  vec3 ambient = vec3(0.1,0.1,0.1) * diffuse;
-  vec3 specular = vec3(0.3,0.3,0.3);
 
   // Distance to the light
   float distance = length( lightpos_world - position_world );
@@ -56,4 +53,19 @@ void main(){
     // Specular : reflective highlight, like a mirror
     specular * lightcol * lightpow * pow(cos_alpha,5) / (distance*distance);
 
+  color = clamp(color,0,1);
+
 }
+
+// float3 viewVec = normalize(i.viewVec);
+// float3 normal = normalize(i.norm);
+// float3 lightVec = normalize(i.lightVec0);
+// float3 halfVec = normalize(viewVec + lightVec);
+// float3 color = surfaceColor * ambientColor;
+// color += lightColor * surfaceColor * kd * saturate(dot(normal, lightVec)) +
+// lightColor * ks * pow(saturate(dot(normal, halfVec)), m);
+// lightVec = normalize(i.lightVec1);
+// halfVec = normalize(viewVec + lightVec);
+// color += lightColor * surfaceColor * kd * saturate(dot(normal, lightVec)) +
+// lightColor * ks * pow(saturate(dot(normal, halfVec)), m);
+// return float4(saturate(color), surfaceColor.a);

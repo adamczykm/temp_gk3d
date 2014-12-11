@@ -1,4 +1,4 @@
-#include "obj_model.hpp"
+#include "model.hpp"
 #include "dbg.h"
 
 #include <stdio.h>
@@ -9,14 +9,15 @@
 
 using namespace std;
 
-void PushTriangle(vector<unsigned short> & triangle,
-                  unsigned short a, unsigned short b, unsigned short c){
+
+void PushTriangle(vector<ushort> & triangle,
+                  ushort a, ushort b, ushort c){
   triangle.push_back(a);
   triangle.push_back(b);
   triangle.push_back(c);
 }
 
-std::vector<unsigned short> MeanPointMethod(vector<unsigned short> poly,
+std::vector<ushort> MeanPointMethod(vector<ushort> poly,
                                  vector<glm::vec3> & vertices){
 
   auto sum = accumulate(poly.begin(), poly.end(), glm::vec3(0,0,0),
@@ -29,7 +30,7 @@ std::vector<unsigned short> MeanPointMethod(vector<unsigned short> poly,
 
   int ind = vertices.size()-1;
 
-  auto ret = vector<unsigned short>();
+  auto ret = vector<ushort>();
   for(size_t i=0; i < poly.size()-1; i++){
     PushTriangle(ret,poly[i],poly[i+1], ind);
   }
@@ -38,10 +39,10 @@ std::vector<unsigned short> MeanPointMethod(vector<unsigned short> poly,
   return ret;
 }
 
-vector<unsigned short> ParsePolygonFace(const char* line,
+vector<ushort> ParsePolygonFace(const char* line,
                              vector<glm::vec3> & vertices,
                              int& inc_index){
-  vector<unsigned short> ret;
+  vector<ushort> ret;
   char c;
   int i=0;
   while((c=line[i])!='\0' || c!='\n'){
@@ -62,12 +63,12 @@ vector<unsigned short> ParsePolygonFace(const char* line,
   if(ret.size() > 4){
     // ret = MeanPointMethod(ret, vertices);
     // inc_index++;
-    ret = vector<unsigned short>();
+    ret = vector<ushort>();
 
   }
   // quads
   else if(ret.size()==4){
-    auto tmp = vector<unsigned short>();
+    auto tmp = vector<ushort>();
     for(auto i : {0,1,3,1,2,3}){
       tmp.push_back(ret[i]);
     }
@@ -76,9 +77,9 @@ vector<unsigned short> ParsePolygonFace(const char* line,
   return ret;
 }
 
-void ComputeNormals(ObjModel& model){
-  auto const & vi = model.indices;
-  auto const & vs = model.vertices;
+void ComputeNormals(Model * model){
+  auto const & vi = model->Indices;
+  auto const & vs = model->Vertices;
   map<int, vector<glm::vec3> > vertexNormals;
   for(size_t i = 0; i< vi.size(); i+=3){
     auto const & a = vs[vi[i]];
@@ -92,27 +93,19 @@ void ComputeNormals(ObjModel& model){
       vertexNormals[vi[j]].push_back(normal);
     }
   }
-  model.normals.clear();
-  for(auto v : vi){
+  model->Normals.clear();
+  for(size_t v=0; v<vs.size(); v++){
       auto sum = accumulate(vertexNormals[v].begin(), vertexNormals[v].end(), glm::vec3(0,0,0),
                             [](glm::vec3 acc, glm::vec3 vv){
-                          return acc + vv;});
-      model.normals.push_back(glm::normalize(sum));
+                                return acc + vv;});
+      model->Normals.push_back(glm::normalize(sum));
   }
 }
 
-
-bool LoadOBJModel(string path,
-                  ObjModel& model,
-                  bool computeNormals){
-  return LoadOBJModel(path.c_str(), model, computeNormals);
-}
-
-bool LoadOBJModel(const char * path,
-                  ObjModel & model,
-                  bool computeNormals){
+Model::Model(const Model::ObjAsset & obj_asset){
 
   int inc_index=0;
+  auto path = obj_asset.Path.c_str();
 
   FILE * file = fopen(path, "r");
   if( file == NULL ){
@@ -120,7 +113,6 @@ bool LoadOBJModel(const char * path,
             __FUNCTION__,
             path);
     getchar();
-    return false;
   }
 
   while( 1 ){
@@ -131,21 +123,20 @@ bool LoadOBJModel(const char * path,
     if (res == EOF)
       break;
 
-
     // parsing vertices
     if ( strcmp( lineHeader, "v" ) == 0 ){
       glm::vec3 vertex;
       fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
-      model.vertices.push_back(vertex);
+      Vertices.push_back(vertex);
     }
     // parsing polygons faces
     else if ( strcmp( lineHeader, "f" ) == 0 ){
 
       fgets(lineHeader, sizeof(lineHeader), file);
       auto tmp = inc_index;
-      auto ret = ParsePolygonFace(lineHeader, model.vertices, tmp);
+      auto ret = ParsePolygonFace(lineHeader, Vertices, tmp);
       for(auto vi : ret){
-        model.indices.push_back(vi + inc_index);
+        Indices.push_back(vi + inc_index);
       }
       inc_index = tmp;
     }else{
@@ -156,44 +147,78 @@ bool LoadOBJModel(const char * path,
 
   }
 
-  if(computeNormals){
-    ComputeNormals(model);
-  }
+  ComputeNormals(this);
 
-  return true;
 }
 
-bool LoadCuboidModel(float width, float height, float depth,
-                     ObjModel& model, bool computeNormals){
+vector<ushort> Triangulate(Model * model, ushort a, ushort b, ushort c, int depth=1){
 
-  model.vertices = {
-    glm::vec3(-width/2, -height/2, -depth/2),
-    glm::vec3(-width/2, -height/2, depth/2),
-    glm::vec3(-width/2, height/2, -depth/2),
-    glm::vec3(-width/2, height/2, depth/2),
-    glm::vec3(width/2, -height/2, -depth/2),
-    glm::vec3(width/2, -height/2, depth/2),
-    glm::vec3(width/2, height/2, -depth/2),
-    glm::vec3(width/2, height/2, depth/2),
+  auto & mv = model->Vertices;
+
+  auto va=mv[a];
+  auto vb=mv[b];
+  auto vc=mv[c];
+
+  auto ab = mv.size();
+  auto vab = (va+vb)*0.5f;
+  mv.push_back(vab);
+
+  auto bc = ab+1;
+  auto vbc = (vb+vc)*0.5f;
+  mv.push_back(vbc);
+
+  auto ca = bc+1;
+  auto vca = (vc+va)*0.5f;
+  mv.push_back(vca);
+
+
+  if(depth>1){
+    vector<ushort> ret;
+    auto r1 = Triangulate(model, a,  ab, ca, depth-1);
+    auto r2 = Triangulate(model, ab, b,  bc, depth-1);
+    auto r3 = Triangulate(model, ab, bc, ca, depth-1);
+    auto r4 = Triangulate(model, ca, bc, c,  depth-1);
+    ret.insert(ret.end(),r1.begin(), r1.end());
+    ret.insert(ret.end(),r2.begin(), r2.end());
+    ret.insert(ret.end(),r3.begin(), r3.end());
+    ret.insert(ret.end(),r4.begin(), r4.end());
+    return ret;
+  }
+  else{
+    return vector<ushort>{
+      a, ab,ca,
+      ab,b, bc,
+      ab,bc,ca,
+      ca,bc,c  };
+  }
+}
+
+Model::Model(const Model::Cuboid & cuboid){
+
+  auto const & w = cuboid.Width;
+  auto const & h = cuboid.Height;
+  auto const & d = cuboid.Depth;
+
+  Vertices = {
+    glm::vec3(-w/2, -h/2, -d/2),
+    glm::vec3(-w/2, -h/2, d/2),
+    glm::vec3(-w/2, h/2, -d/2),
+    glm::vec3(-w/2, h/2, d/2),
+    glm::vec3(w/2, -h/2, -d/2),
+    glm::vec3(w/2, -h/2, d/2),
+    glm::vec3(w/2, h/2, -d/2),
+    glm::vec3(w/2, h/2, d/2),
   };
 
-  PushTriangle(model.indices, 0, 1, 2);
-  PushTriangle(model.indices, 2, 1, 3);
-  PushTriangle(model.indices, 1, 5, 3);
-  PushTriangle(model.indices, 3, 5, 7);
+  auto& mi = Indices;
 
-  PushTriangle(model.indices, 0, 4, 1);
-  PushTriangle(model.indices, 1, 4, 5);
-  PushTriangle(model.indices, 3, 7, 2);
-  PushTriangle(model.indices, 2, 7, 6);
+  ushort base[] = { 0, 1, 2, 2, 1, 3, 1, 5, 3, 3, 5, 7, 0, 4, 1, 1, 4, 5, 3, 7, 2, 2, 7, 6, 5, 4, 7, 7, 4, 6, 4, 0, 6, 6, 0, 2};
 
-  PushTriangle(model.indices, 5, 4, 7);
-  PushTriangle(model.indices, 7, 4, 6);
-  PushTriangle(model.indices, 4, 0, 6);
-  PushTriangle(model.indices, 6, 0, 2);
-
-  if(computeNormals){
-    ComputeNormals(model);
+  for(size_t i=0; i<36; i+=3){
+    auto t = Triangulate(this, base[i], base[i+1], base[i+2], cuboid.Triang_depth);
+    mi.insert(mi.end(),t.begin(), t.end());
   }
-  return true;
+
+  ComputeNormals(this);
+
 }
