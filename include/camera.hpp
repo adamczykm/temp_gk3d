@@ -23,6 +23,7 @@ public:
 
   void TranslateCamera(const glm::vec3 & translation);
   void RotateCamera(float yaw, float pitch);
+  void RotateCamera(float yaw, float pitch, float roll);
   void RollCamera(float roll);
 
 };

@@ -43,3 +43,17 @@ mat4 Camera::GetViewMatrix(){
 
   return lookAt(_pos, _pos + _eye, _up);
 }
+
+
+void Camera::RotateCamera(float yaw, float pitch, float roll){
+  _rot = cross(quat(1,0,0,0), angleAxis(yaw, _right));
+  _rot = cross(_rot, angleAxis(pitch, _up));
+  _rot = cross(_rot, angleAxis(roll, _eye));
+
+  _rot = normalize(_rot);
+
+  _right = _rot * _right; //rotate(_rot, _right);
+  _eye = _rot * _eye; // rotate(_rot, _eye);
+  _up = _rot * _up; //rotate(_rot, _up);
+
+}

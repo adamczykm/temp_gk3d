@@ -118,6 +118,16 @@ int Run(){
   }
 
 
+  // -------- ball
+  Model ball_model(Model::ObjAsset("Volleyball.obj"));
+  auto base_m = glm::scale(glm::mat4(1), glm::vec3(0.05));
+  base_m = glm::translate(base_m, glm::vec3(-350, 0 ,-43));
+
+
+  ObjectInstance ball(ball_model, base_m,
+                      PhongColor(glm::vec3(0.9,0.9,0.9), light_color, 0.25));
+
+
   // -------- hall
   Model hall_model(Model::Cuboid(110,35,70,5));
   auto & tmp = hall_model.Normals;
@@ -222,6 +232,10 @@ int Run(){
     // hall
     DrawTriangles(vbo, hall_model, hall, shader, V, P);
 
+    // ball
+    DrawTriangles(vbo, ball_model, ball, shader, V, P);
+
+
     // floor
     DrawTriangles(vbo, floor_model, floor, shader, V, P);
 
@@ -275,12 +289,12 @@ glm::mat4 GetViewMatrixFromInputs(Camera & camera, Controls & controls){
     controls.GetMovementFromInputs(translation, yaw, pitch, roll);
     camera.TranslateCamera(translation);
 
-    if(yaw || pitch){
-        camera.RotateCamera(yaw, pitch);
+    if(yaw || pitch || roll){
+      camera.RotateCamera(yaw, pitch,roll);
     }
-    if(roll){
-        camera.RollCamera(roll);
-    }
+    // if(roll){
+    //     camera.RollCamera(roll);
+    // }
 
     return camera.GetViewMatrix();
 }
