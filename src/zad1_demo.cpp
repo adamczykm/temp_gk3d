@@ -5,6 +5,7 @@
 #include "shader.hpp"
 #include "camera.hpp"
 #include "controls.hpp"
+#include <algorithm>
 
 #include "dbg.h"
 
@@ -63,9 +64,9 @@ int Run(){
   std::string fs_path = GetPathForAsset("test.fragmentshader");
 
   Shader shader(vs_path, fs_path);
-  glm::vec3 light_color(1.0,1.0,0.85);
-  glm::vec3 lightpos(0,5,0);
-  float lightpow = 200.0f;
+  glm::vec3 light_color(1.0,1.0,0.95);
+  glm::vec3 lightpos(-15,0,0);
+  float lightpow = 300.0f;
 
   shader.BindParameter("lightpow", lightpow);
   shader.BindParameter("lightcol", light_color);
@@ -75,28 +76,57 @@ int Run(){
 
   // -------- chair
   Model chair_model(Model::ObjAsset("Vitra03.obj"));
-  size_t chairs_count = 5;
-  std::vector<ObjectInstance> chairs;
-  glm::mat4 base_m = glm::lookAt(glm::vec3(0,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1));
-  base_m = glm::scale(base_m, glm::vec3(0.2));
-  base_m = glm::translate(base_m, glm::vec3(0,130,-63));
+  size_t chairs_count = 6;
+  size_t chair_sets = 4;
+  std::vector<ObjectInstance> chairs[chair_sets];
 
-  for(size_t i=0; i<chairs_count; i++){
-    auto m = base_m;
-    ObjectInstance oi(chair_model, glm::translate(m, float(i) * glm::vec3(20,0,0)),
-                      PhongColor(glm::vec3(0.8,0.0,0.0), light_color, 0.35));
-    chairs.push_back(oi);
+  for(size_t i=0; i < chair_sets; i++){
+
+    int xside = i/2 ? 1 : -1;
+    int yside = i%2 ? 1 : -1;
+
+
+    glm::mat4 base_m = glm::lookAt(glm::vec3(0,0,0), glm::vec3(0,xside,0), glm::vec3(0,0,1));
+    base_m = glm::scale(base_m, glm::vec3(0.2));
+    base_m = glm::translate(base_m, glm::vec3(-150 * yside , 144 ,-63));
+
+
+    for(size_t j=0; j<chairs_count; j++){
+      auto m = base_m;
+      ObjectInstance oi(chair_model, glm::translate(m, float(j) * yside * glm::vec3(20,0,0)),
+                        PhongColor(glm::vec3(0.9,0.0,0.0), light_color, 0.35));
+      chairs[i].push_back(oi);
+    }
+
   }
 
+
   // -------- hall
-  Model hall_model(Model::Cuboid(100,25,60,5));
-  ObjectInstance hall(hall_model, glm::mat4(1),
-                      PhongColor(glm::vec3(0.8,0.2,0.5), light_color, 0.05));
+  Model hall_model(Model::Cuboid(110,35,70,5));
+  auto & tmp = hall_model.Normals;
+
+  std::transform(tmp.begin(), tmp.end(), tmp.begin(),
+                 [](glm::vec3 v){return -v;});
+
+  ObjectInstance hall(hall_model, glm::translate(glm::mat4(1), glm::vec3(0,5,0)),
+                      PhongColor(glm::vec3(0.9,0.9,0.9), light_color, 0.05));
 
   // -------- floor
-  Model floor_model(Model::Cuboid(90,1,50,5));
-  ObjectInstance floor(floor_model, glm::translate(glm::mat4(1), glm::vec3(0,-12.4,0)),
-                       PhongColor(glm::vec3(0.9,0.2,0.0), light_color));
+  Model floor_model(Model::Cuboid(90,.2,50,5));
+  ObjectInstance floor(floor_model, glm::translate(glm::mat4(1), glm::vec3(0,-12.5,0)),
+                       PhongColor(glm::vec3(1.,0.8,0.0), light_color));
+
+  Model net_model(Model::Cuboid(.1,6,44,5));
+  ObjectInstance net(net_model, glm::translate(glm::mat4(1), glm::vec3(0,0,0)),
+                     PhongColor(glm::vec3(1.,1.,1.0), light_color, 0., .4));
+
+  // --------- posts
+  Model post_model(Model::Cuboid(.2,16,.2,4));
+  std::vector<ObjectInstance> posts;
+  posts.push_back(ObjectInstance(post_model, glm::translate(glm::mat4(1), glm::vec3(0,-5,22)),
+                                 PhongColor(glm::vec3(0.2,0.8,0.0), light_color, 0.8)));
+  posts.push_back(ObjectInstance(post_model, glm::translate(glm::mat4(1), glm::vec3(0,-5,-22)),
+                                 PhongColor(glm::vec3(0.2,0.8,0.0), light_color, 0.8)));
 
 
   // ---------------------- VBO
@@ -131,18 +161,29 @@ int Run(){
     glUseProgram(shader.Index);
 
     shader.BindParameter("V", V);
+    shader.BindParameter("lightpow", lightpow);
+    shader.BindParameter("lightcol", light_color);
+    shader.BindParameter("lightpos_world", lightpos);
 
 
     // ---------------- SCENE -------------------
 
     // draw chairs
-    DrawTriangles(vbo, chair_model, chairs, shader, V, P);
+    for(size_t i=0; i < chair_sets; i++){
+      DrawTriangles(vbo, chair_model, chairs[i], shader, V, P);
+    }
 
     // hall
     DrawTriangles(vbo, hall_model, hall, shader, V, P);
 
     // floor
     DrawTriangles(vbo, floor_model, floor, shader, V, P);
+
+    // net
+    DrawTriangles(vbo, net_model, net, shader, V, P);
+
+    // posts
+    DrawTriangles(vbo, post_model, posts, shader, V, P);
 
     // ------------------------------------------
 
@@ -314,6 +355,6 @@ GLFWwindow* InitGLWindow(){
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     return window;
 }

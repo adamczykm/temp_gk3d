@@ -98,7 +98,7 @@ void ComputeNormals(Model * model){
       auto sum = accumulate(vertexNormals[v].begin(), vertexNormals[v].end(), glm::vec3(0,0,0),
                             [](glm::vec3 acc, glm::vec3 vv){
                                 return acc + vv;});
-      model->Normals.push_back(glm::normalize(sum));
+      model->Normals.push_back(-sum);
   }
 }
 
@@ -212,7 +212,14 @@ Model::Model(const Model::Cuboid & cuboid){
 
   auto& mi = Indices;
 
-  ushort base[] = { 0, 1, 2, 2, 1, 3, 1, 5, 3, 3, 5, 7, 0, 4, 1, 1, 4, 5, 3, 7, 2, 2, 7, 6, 5, 4, 7, 7, 4, 6, 4, 0, 6, 6, 0, 2};
+  ushort base[] = { 0, 1, 2, 2, 1, 3,
+                    1, 5, 3, 3, 5, 7,
+                    5, 4, 7, 7, 4, 6,
+                    4, 0, 6, 6, 0, 2,
+                    3, 7, 2, 2, 7, 6,
+                    0, 4, 1, 1, 4, 5};
+
+  // ushort base[] = { 0, 1, 2, 2, 1, 3, 1, 5, 3, 3, 5, 7, 0, 4, 1, 1, 4, 5, 3, 7, 2, 2, 7, 6, 5, 4, 7, 7, 4, 6, 4, 0, 6, 6, 0, 2};
 
   for(size_t i=0; i<36; i+=3){
     auto t = Triangulate(this, base[i], base[i+1], base[i+2], cuboid.Triang_depth);

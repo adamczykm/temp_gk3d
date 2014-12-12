@@ -21,9 +21,6 @@ public:
     return _projectionMatrix;
   }
 
-  void PrintUp(){
-    printf("%f %f %f",_up.x, _up.y, _up.z);
-  }
   void TranslateCamera(const glm::vec3 & translation);
   void RotateCamera(float yaw, float pitch);
   void RollCamera(float roll);
