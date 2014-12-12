@@ -29,7 +29,6 @@ void Camera::RollCamera(float roll){
   _rot = normalize(_rot);
   _up = _rot * _up; //rotate(_rot, _up);
   _right = normalize(cross(_eye,_up));
-  printf("%f %f %f",_up[0],_up[1],_up[2]);
 }
 
 void Camera::RotateCamera(float yaw, float pitch){

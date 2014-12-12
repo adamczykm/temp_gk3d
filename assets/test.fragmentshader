@@ -4,9 +4,12 @@ in vec3 position_world;
 in vec3 normal_camera;
 in vec3 eyedir_camera;
 in vec3 lightdir_camera;
+in vec3 screenlightdir_camera;
+in vec3 screendir_camera;
 
 out vec3 color;
 
+uniform mat4 V;
 uniform mat4 MV;
 uniform vec3 lightpos_world;
 
@@ -17,42 +20,42 @@ uniform vec3 specular;
 uniform vec3 lightcol;
 uniform float lightpow;
 
+uniform float screenpow;
+uniform vec3 screencol;
+uniform vec3 screenpos_world;
+
 void main(){
+  float screen_cutoff = 0.70;
 
-  // Distance to the light
   float distance = length( lightpos_world - position_world );
-
-  // Normal of the computed fragment, in camera space
   vec3 n = normalize(normal_camera);
-  // Direction of the light (from the fragment to the light)
   vec3 l = normalize(lightdir_camera);
-  // Cosine of the angle between the normal and the light direction,
-  // clamped above 0
-  //  - light is at the vertical of the triangle -> 1
-  //  - light is perpendicular to the triangle -> 0
-  //  - light is behind the triangle -> 0
-  float cos_theta = clamp(dot(n, l), 0, 1);
-
+  vec3 s = normalize(screenlightdir_camera);
+  vec3 sd = normalize(screendir_camera);
+  float cos_theta = clamp(dot(n, l), 0, 0.95);
   // Eye vector (towards the camera)
   vec3 E = normalize(eyedir_camera);
-
   // Direction in which the triangle reflects the light
   vec3 R = reflect(-l,n);
-
+  vec3 RS = reflect(-s,n);
   // Cosine of the angle between the Eye vector and the Reflect vector,
-  // clamped to 0
-  //  - Looking into the reflection -> 1
-  //  - Looking elsewhere -> < 1
   float cos_alpha = clamp(dot(E, R), 0, 1);
+
+  float DS = pow(length( screenpos_world - position_world ),2);
 
   color =
     // Ambient : simulates indirect lighting
     ambient +
     // Diffuse : "color" of the object
-    diffuse * lightcol * lightpow * cos_theta / (distance*distance) +
+    diffuse * lightcol * lightpow * cos_theta / distance +
     // Specular : reflective highlight, like a mirror
-    specular * lightcol * lightpow * pow(cos_alpha,5) / (distance*distance);
+    specular * lightcol * lightpow * pow(cos_alpha,2.5) / distance;
 
+  if(screen_cutoff < dot(-sd, s)){
+    color +=
+      diffuse * screencol * screenpow * clamp(dot(n, s), 0, 0.95) / DS
+      + specular * screencol * screenpow * pow(clamp(dot(E, RS),0,1),5) / DS;
+  }
   color = clamp(color,0,1);
 
 }

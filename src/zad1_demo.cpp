@@ -65,18 +65,35 @@ int Run(){
 
   Shader shader(vs_path, fs_path);
   glm::vec3 light_color(1.0,1.0,0.95);
-  glm::vec3 lightpos(-15,0,0);
-  float lightpow = 300.0f;
+  glm::vec3 lightpos(-15,15,0);
+  float lightpow = 8.0f;
 
   shader.BindParameter("lightpow", lightpow);
   shader.BindParameter("lightcol", light_color);
   shader.BindParameter("lightpos_world", lightpos);
 
+
+  size_t screen_light_color_change_freq = 60;
+  std::vector<glm::vec3> screen_colors = {
+    glm::vec3(1,0,0),
+    glm::vec3(0,1,0),
+    glm::vec3(0,0,1),
+    glm::vec3(1,1,0),
+    glm::vec3(0,1,1),
+    glm::vec3(1,0,1)};
+
+  glm::vec3 screen_pos(55,8,0);
+  glm::vec3 screen_dir(-1,0,0);
+  float screen_pow = 300.0f;
+
+
+
+
   // ----------------------- MODELS
 
   // -------- chair
   Model chair_model(Model::ObjAsset("Vitra03.obj"));
-  size_t chairs_count = 6;
+  size_t chairs_count = 5;
   size_t chair_sets = 4;
   std::vector<ObjectInstance> chairs[chair_sets];
 
@@ -94,7 +111,7 @@ int Run(){
     for(size_t j=0; j<chairs_count; j++){
       auto m = base_m;
       ObjectInstance oi(chair_model, glm::translate(m, float(j) * yside * glm::vec3(20,0,0)),
-                        PhongColor(glm::vec3(0.9,0.0,0.0), light_color, 0.35));
+                        PhongColor(glm::vec3(0.9,0.0,0.0), light_color, 0.65));
       chairs[i].push_back(oi);
     }
 
@@ -116,9 +133,13 @@ int Run(){
   ObjectInstance floor(floor_model, glm::translate(glm::mat4(1), glm::vec3(0,-12.5,0)),
                        PhongColor(glm::vec3(1.,0.8,0.0), light_color));
 
-  Model net_model(Model::Cuboid(.1,6,44,5));
-  ObjectInstance net(net_model, glm::translate(glm::mat4(1), glm::vec3(0,0,0)),
-                     PhongColor(glm::vec3(1.,1.,1.0), light_color, 0., .4));
+  // --------- net
+  Model net_model(Model::Cuboid(.1,6,44,4));
+  ObjectInstance net(net_model, glm::mat4(1),
+                     PhongColor(glm::vec3(1.,1.,1.0), light_color, 0.2, .35));
+  auto & tmp2 = net_model.Normals;
+  std::transform(tmp2.begin(), tmp2.end(), tmp2.begin(),
+                 [](glm::vec3 v){return -v;});
 
   // --------- posts
   Model post_model(Model::Cuboid(.2,16,.2,4));
@@ -127,6 +148,19 @@ int Run(){
                                  PhongColor(glm::vec3(0.2,0.8,0.0), light_color, 0.8)));
   posts.push_back(ObjectInstance(post_model, glm::translate(glm::mat4(1), glm::vec3(0,-5,-22)),
                                  PhongColor(glm::vec3(0.2,0.8,0.0), light_color, 0.8)));
+
+
+
+  // ----------- screen
+  Model screen_model(Model::Cuboid(.1,15,30,4));
+  ObjectInstance screen(screen_model, glm::translate(glm::mat4(1), screen_pos),
+                     PhongColor(glm::vec3(0.,1.,0.0), light_color, 0., 4.));
+
+    // ----------- pointlight
+  Model pointlight_model(Model::Cuboid(1.2,1.2,1.2,2));
+  ObjectInstance pointlight(pointlight_model, glm::translate(glm::mat4(1), lightpos),
+                     PhongColor(light_color, light_color, 0., 6.));
+
 
 
   // ---------------------- VBO
@@ -144,7 +178,16 @@ int Run(){
   shader.BindParameter("MVP",MVP);
 
   // ---------------------- GL DRAW LOOP ----------------------
+  int ind = 0;
+  int color_index =0;
+  glm::vec3 screen_color;
   do{
+    ind = (ind + 1) % screen_light_color_change_freq;
+    if(!ind){
+      color_index = (color_index + 1) % screen_colors.size();
+      screen_color = screen_colors[color_index];
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -164,7 +207,10 @@ int Run(){
     shader.BindParameter("lightpow", lightpow);
     shader.BindParameter("lightcol", light_color);
     shader.BindParameter("lightpos_world", lightpos);
-
+    shader.BindParameter("screenpow", screen_pow);
+    shader.BindParameter("screencol", screen_colors[color_index]);
+    shader.BindParameter("screenpos_world", screen_pos);
+    shader.BindParameter("screendir_world", screen_dir);
 
     // ---------------- SCENE -------------------
 
@@ -184,6 +230,15 @@ int Run(){
 
     // posts
     DrawTriangles(vbo, post_model, posts, shader, V, P);
+
+    // screen
+    screen.Color = PhongColor(screen_color, light_color, 0., 4.);
+    DrawTriangles(vbo, screen_model, screen, shader, V, P);
+
+    // point light
+    DrawTriangles(vbo, pointlight_model, pointlight, shader, V, P);
+
+
 
     // ------------------------------------------
 
@@ -355,6 +410,6 @@ GLFWwindow* InitGLWindow(){
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
     return window;
 }

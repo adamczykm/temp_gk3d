@@ -85,7 +85,7 @@ void ComputeNormals(Model * model){
     auto const & a = vs[vi[i]];
     auto const & b = vs[vi[i+1]];
     auto const & c = vs[vi[i+2]];
-    auto normal = glm::normalize(glm::cross(c - a, b - a));
+    auto normal = glm::cross(c - a, b - a);
     for(size_t j=i; j< i+3; j++){
       if(!vertexNormals.count(vi[j])){
         vertexNormals[vi[j]] = vector<glm::vec3>();
