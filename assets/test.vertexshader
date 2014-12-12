@@ -11,29 +11,35 @@ out vec3 eyedir_camera;
 out vec3 lightdir_camera;
 
 
+// Values that stay constant for the whole mesh.
+uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
 uniform vec3 lightpos_world;
 
 void main(){
-  mat4 MV = V * M;
-  vec3 position_camera = ( V * M * vec4(v_position_model, 1)).xyz;
-  gl_Position = P * position_camera;
-  eyedir_camera =  normalize(-position_camera.xyz);
-  normal_camera = normalize((MV * vec4(v_normal_model, 0)).xyz);
-  lighdir_camera = normalize((V * lightpos_world - position_camera).xyz);
+	gl_Position =  MVP * vec4(v_position_model, 1);
 
+        position_world = (M * vec4(v_position_model, 1)).xyz;
+
+	vec3 position_camera = ( V * M * vec4(v_position_model, 1)).xyz;
+	eyedir_camera = vec3(0,0,0) - position_camera;
+
+        vec3 light_position_camera = ( V * vec4(lightpos_world, 1)).xyz;
+	lightdir_camera = light_position_camera + eyedir_camera;
+
+        normal_camera = ( V * M * vec4(v_normal_model, 0)).xyz;
 }
 
 // 	PSInput o = (PSInput)0;
-// matrix MV = mul(V, M);
-// float4 position_camera = float4(i.pos, 1.0f);
-// position_camera = mul(MV, position_camera);
-// gl_Position = mul(P, position_camera);
+// matrix worldView = mul(viewMatrix, worldMatrix);
+// float4 viewPos = float4(i.pos, 1.0f);
+// viewPos = mul(worldView, viewPos);
+// o.pos = mul(projMatrix, viewPos);
 
-// normal_camera = mul(MV, float4(i.norm, 0.0f)).xyz;
-// normal_camera = normalize(normal_camera);
-// eyedir_camera = normalize(-position_camera.xyz);
-// lighdir_camera = normalize((mul(V, lightPos[0]) - position_camera).xyz);
-// o.lightVec1 = normalize((mul(V, lightPos[1]) - position_camera).xyz);
+// o.norm = mul(worldView, float4(i.norm, 0.0f)).xyz;
+// o.norm = normalize(o.norm);
+// o.viewVec = normalize(-viewPos.xyz);
+// o.lightVec0 = normalize((mul(viewMatrix, lightPos[0]) - viewPos).xyz);
+// o.lightVec1 = normalize((mul(viewMatrix, lightPos[1]) - viewPos).xyz);
 // return o;
