@@ -152,7 +152,7 @@ int Run(){
 
 
   // ----------- screen
-  Model screen_model(Model::Cuboid(.1,15,30,4));
+  Model screen_model(Model::Cuboid(.1,12,28,4));
   ObjectInstance screen(screen_model, glm::translate(glm::mat4(1), screen_pos),
                      PhongColor(glm::vec3(0.,1.,0.0), light_color, 0., 4.));
 
