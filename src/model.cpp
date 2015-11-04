@@ -193,6 +193,34 @@ vector<ushort> Triangulate(Model * model, ushort a, ushort b, ushort c, int dept
   }
 }
 
+Model::Model(const Model::Rectangle & rect){
+
+  auto const & w = rect.Width;
+  auto const & h = rect.Height;
+
+  Vertices = {
+    glm::vec3( w/2, 0, -h/2),
+    glm::vec3(-w/2, 0, -h/2),
+    glm::vec3( w/2, 0,  h/2),
+    glm::vec3(-w/2, 0,  h/2),
+  };
+
+  auto& mi = Indices;
+
+  ushort base[] = { 0, 1, 2, 2, 1, 3 };
+             
+
+  // ushort base[] = { 0, 1, 2, 2, 1, 3, 1, 5, 3, 3, 5, 7, 0, 4, 1, 1, 4, 5, 3, 7, 2, 2, 7, 6, 5, 4, 7, 7, 4, 6, 4, 0, 6, 6, 0, 2};
+
+  for(size_t i=0; i<6; i+=3){
+    auto t = Triangulate(this, base[i], base[i+1], base[i+2], rect.Triang_depth);
+    mi.insert(mi.end(),t.begin(), t.end());
+  }
+
+  ComputeNormals(this);
+
+}
+
 Model::Model(const Model::Cuboid & cuboid){
 
   auto const & w = cuboid.Width;

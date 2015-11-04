@@ -19,6 +19,16 @@ struct Model{
     inline ObjAsset(const char * asset_path) : Path(GetPathForAsset(asset_path)) {}
   };
 
+  struct Rectangle{
+    float Width;
+    float Height;
+    ushort Triang_depth;
+
+    inline Rectangle(float width, float height, ushort triangulation_depth=1)
+      : Width(width), Height(height), Triang_depth(triangulation_depth) {}
+  };
+
+
   struct Cuboid{
     float Width;
     float Height;
@@ -31,6 +41,7 @@ struct Model{
 
   Model(const Model::ObjAsset & obj_asset);
   Model(const Model::Cuboid & cuboid);
+  Model(const Model::Rectangle & rect);
 
   // -------------------------------
 

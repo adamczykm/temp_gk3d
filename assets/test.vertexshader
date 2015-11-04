@@ -8,47 +8,43 @@ layout(location = 1) in vec3 v_normal_model;
 out vec3 position_world;
 out vec3 normal_camera;
 out vec3 eyedir_camera;
-out vec3 lightdir_camera;
+out vec3 lamp1dir_camera;
+out vec3 lamp2dir_camera;
 out vec3 screenlightdir_camera;
 out vec3 screendir_camera;
 
 
-// Values that stay constant for the whole mesh.
+// consts
 uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
-uniform vec3 lightpos_world;
+
+uniform vec3 lamp1_pos_world;
+uniform vec3 lamp2_pos_world;
 uniform vec3 screenpos_world;
 uniform vec3 screendir_world;
 
 void main(){
-	gl_Position =  MVP * vec4(v_position_model, 1);
 
-        position_world = (M * vec4(v_position_model, 1)).xyz;
+  gl_Position = MVP * vec4(v_position_model, 1);
+  position_world = (M * vec4(v_position_model, 1)).xyz;
 
-	vec3 position_camera = ( V * M * vec4(v_position_model, 1)).xyz;
-	eyedir_camera = vec3(0,0,0) - position_camera;
+  // camera
+  vec3 position_camera = ( V * M * vec4(v_position_model, 1)).xyz;
+  eyedir_camera = vec3(0,0,0) - position_camera;
+  normal_camera = ( V * M * vec4(v_normal_model, 0)).xyz;
 
-        vec3 light_position_camera = ( V * vec4(lightpos_world, 1)).xyz;
-        vec3 screen_position_camera = (V * vec4(lightpos_world, 1)).xyz;
+  // lamp1
+  position_camera =  (V * vec4(lamp1_pos_world, 1)).xyz;
+  lamp1dir_camera = position_camera + eyedir_camera;
 
-        screendir_camera = ( V * vec4(screendir_world, 0)).xyz;
+  // lamp2
+  position_camera =  (V * vec4(lamp2_pos_world, 1)).xyz;
+  lamp2dir_camera = position_camera + eyedir_camera;
 
-	lightdir_camera = light_position_camera + eyedir_camera;
-        screenlightdir_camera = screen_position_camera + eyedir_camera;
-
-        normal_camera = ( V * M * vec4(v_normal_model, 0)).xyz;
+  // screen
+  position_camera = (V * vec4(screenpos_world, 1)).xyz;
+  screendir_camera = ( V * vec4(screendir_world, 0)).xyz;
+  screenlightdir_camera = position_camera + eyedir_camera;
+ 
 }
-
-// 	PSInput o = (PSInput)0;
-// matrix worldView = mul(viewMatrix, worldMatrix);
-// float4 viewPos = float4(i.pos, 1.0f);
-// viewPos = mul(worldView, viewPos);
-// o.pos = mul(projMatrix, viewPos);
-
-// o.norm = mul(worldView, float4(i.norm, 0.0f)).xyz;
-// o.norm = normalize(o.norm);
-// o.viewVec = normalize(-viewPos.xyz);
-// o.lightVec0 = normalize((mul(viewMatrix, lightPos[0]) - viewPos).xyz);
-// o.lightVec1 = normalize((mul(viewMatrix, lightPos[1]) - viewPos).xyz);
-// return o;

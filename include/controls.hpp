@@ -12,7 +12,7 @@ public:
   ~Controls(){}
   float translationSpeed = 15.0f;
   float mouseSpeed = 0.03f;
-  float rollSpeed = 45.0f;
+  float rollSpeed = 5.0f;
 
   void GetMovementFromInputs(glm::vec3 & translation,
                              float & yaw,

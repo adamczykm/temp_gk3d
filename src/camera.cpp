@@ -25,7 +25,7 @@ void Camera::TranslateCamera(const vec3 & translation){
 }
 
 void Camera::RollCamera(float roll){
-  _rot = cross(angleAxis(roll, _eye),quat(1,0,0,0));
+  _rot = cross(angleAxis(roll, _eye),quat(0.2,0,0,0));
   _rot = normalize(_rot);
   _up = _rot * _up; //rotate(_rot, _up);
   _right = normalize(cross(_eye,_up));

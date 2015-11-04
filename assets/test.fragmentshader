@@ -3,7 +3,8 @@
 in vec3 position_world;
 in vec3 normal_camera;
 in vec3 eyedir_camera;
-in vec3 lightdir_camera;
+in vec3 lamp1dir_camera;
+in vec3 lamp2dir_camera;
 in vec3 screenlightdir_camera;
 in vec3 screendir_camera;
 
@@ -11,7 +12,8 @@ out vec3 color;
 
 uniform mat4 V;
 uniform mat4 MV;
-uniform vec3 lightpos_world;
+uniform vec3 lamp1_pos_world;
+uniform vec3 lamp2_pos_world;
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -25,21 +27,27 @@ uniform vec3 screencol;
 uniform vec3 screenpos_world;
 
 void main(){
-  float screen_cutoff = 0.70;
+  float screen_cutoff = 0.40;
 
-  float distance = length( lightpos_world - position_world );
+  float d1 = length( lamp1_pos_world - position_world );
+  float d2 = length( lamp2_pos_world - position_world );
+
   vec3 n = normalize(normal_camera);
-  vec3 l = normalize(lightdir_camera);
+  vec3 l1 = normalize(lamp1dir_camera);
+  vec3 l2 = normalize(lamp2dir_camera);
+
   vec3 s = normalize(screenlightdir_camera);
   vec3 sd = normalize(screendir_camera);
-  float cos_theta = clamp(dot(n, l), 0, 0.95);
+  float l1_angle = clamp(dot(n, l1), 0, 0.95);
+  float l2_angle = clamp(dot(n, l2), 0, 0.95);
+
   // Eye vector (towards the camera)
   vec3 E = normalize(eyedir_camera);
   // Direction in which the triangle reflects the light
-  vec3 R = reflect(-l,n);
+  vec3 R = reflect(-l1,n);
   vec3 RS = reflect(-s,n);
   // Cosine of the angle between the Eye vector and the Reflect vector,
-  float cos_alpha = clamp(dot(E, R), 0, 1);
+  float angle_reflection = clamp(dot(E, R), 0, 1);
 
   float DS = pow(length( screenpos_world - position_world ),2);
 
@@ -47,13 +55,21 @@ void main(){
     // Ambient : simulates indirect lighting
     ambient +
     // Diffuse : "color" of the object
-    diffuse * lightcol * lightpow * cos_theta / distance +
+    diffuse * lightcol * lightpow * l1_angle / d1 +
     // Specular : reflective highlight, like a mirror
-    specular * lightcol * lightpow * pow(cos_alpha,2.5) / distance;
+    specular * lightcol * lightpow * pow(angle_reflection, 2.5) / d1;
+
+  color = clamp(color,0,1);
+  color +=
+    // Diffuse : "color" of the object
+    diffuse * lightcol * lightpow * l2_angle / d2 +
+    // Specular : reflective highlight, like a mirror
+    specular * lightcol * lightpow * pow(angle_reflection, 2.5) / d2;
+  color = clamp(color,0,1);
 
   if(screen_cutoff < dot(-sd, s)){
     color +=
-      diffuse * screencol * screenpow * clamp(dot(n, s), 0, 0.95) / DS
+      diffuse * screencol * screenpow * clamp(dot(n, s), 0, 0.95) / DS;
       + specular * screencol * screenpow * pow(clamp(dot(E, RS),0,1),5) / DS;
   }
   color = clamp(color,0,1);
