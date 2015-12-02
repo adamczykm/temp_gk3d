@@ -24,6 +24,7 @@ void Camera::TranslateCamera(const vec3 & translation){
     + translation.y * cross(_right, _eye);
 }
 
+//*
 void Camera::RollCamera(float roll){
   _rot = cross(angleAxis(roll, _eye),quat(0.2,0,0,0));
   _rot = normalize(_rot);
@@ -40,7 +41,6 @@ void Camera::RotateCamera(float yaw, float pitch){
 }
 
 mat4 Camera::GetViewMatrix(){
-
   return lookAt(_pos, _pos + _eye, _up);
 }
 

@@ -8,14 +8,14 @@ CXX=g++
 CC=gcc
 DEBUG_OPTIONS=-std=c++11 -g -Wall #-Werror
 RELEASE_OPTIONS=-std=c++11-O2 -Wall
-GLFLAGS=-lglut -lGL -lglfw -lGLEW
+GLFLAGS=-lglut -lGL -lglfw -lGLEW -lSDL_image -lSDL
 CFLAGS=-I./${INCLUDE_DIR} -DASSETS=\"${CURDIR}/${ASSETS_DIR}\"
 
 
-_HEADERS = dbg.h object_instance.hpp controls.hpp camera.hpp shader.hpp assets.hpp model.hpp zad1_demo.hpp
+_HEADERS = dbg.h object_instance.hpp controls.hpp camera.hpp shader.hpp assets.hpp model.hpp zad1_demo.hpp texture.hpp
 HEADERS = $(patsubst %,${INCLUDE_DIR}/%,${_HEADERS})
 
-_OBJ = controls.o camera.o shader.o assets.o model.o zad1_demo.o main.o
+_OBJ = controls.o camera.o shader.o assets.o model.o zad1_demo.o main.o texture.o
 OBJ = $(patsubst %,${OBJ_DIR}/%,${_OBJ})
 
 

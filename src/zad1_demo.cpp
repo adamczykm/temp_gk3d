@@ -1,3 +1,4 @@
+//* includes
 #include "assets.hpp"
 #include "zad1_demo.hpp"
 #include "model.hpp"
@@ -9,11 +10,14 @@
 
 #include "dbg.h"
 
-// GL includes
+//** gl
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GLFW/glfw3.h>
+
+//* constants
 
 const int W_WIDTH = 1024*2;
 const int W_HEIGHT = 576*2;
@@ -24,6 +28,7 @@ struct VBO{
   GLuint ElementBuffer;
 };
 
+//* function headers
 
 void InitVbo(VBO & vbo);
 
@@ -42,11 +47,13 @@ GLFWwindow* InitGLWindow();
 
 glm::mat4 GetViewMatrixFromInputs(Camera & camera, Controls & controls);
 
+//* Run Demo
+
 int Run(){
 
   auto window = InitGLWindow();
 
-  // ------------------ Camera & Controls
+//** ------------------ Camera & Controls
 
   auto camera = Camera();
   auto controls = Controls(window, W_WIDTH, W_HEIGHT);
@@ -58,7 +65,7 @@ int Run(){
   glBindVertexArray(VertexArrayID);
 
 
-  // ----------------------- SHADERS & LIGHTING
+  // ----------------------- SHADERS & LIGHTING 
 
   std::string vs_path = GetPathForAsset("test.vertexshader");
   std::string fs_path = GetPathForAsset("test.fragmentshader");
@@ -104,7 +111,7 @@ int Run(){
 
   ObjectInstance bench2(bench_model, glm::translate(base_m,  glm::vec3(20,0,-90)),
                     PhongColor(glm::vec3(0.8,0.2,0.0), light_color, 0.55));
-  
+
 
   // -------- lamp
   Model lamp_model(Model::ObjAsset("lamppost.obj"));
@@ -249,6 +256,7 @@ int Run(){
   return 0;
 }
 
+//* View / Inputs
 
 glm::mat4 GetViewMatrixFromInputs(Camera & camera, Controls & controls){
 
@@ -267,6 +275,7 @@ glm::mat4 GetViewMatrixFromInputs(Camera & camera, Controls & controls){
   return camera.GetViewMatrix();
 }
 
+//* VBO
 
 void InitVbo(VBO & vbo){
 
@@ -308,6 +317,7 @@ void CleanVbo(VBO & vbo){
   glDeleteBuffers(1, &vbo.ElementBuffer);
 }
 
+//* Draw / Triangles
 
 void DrawTriangles(VBO & vbo, const Model & geometry,
                    ObjectInstance & instance,
@@ -355,6 +365,8 @@ void DrawTriangles(VBO & vbo, const Model & geometry,
 
   }
 }
+
+//* Init window
 
 GLFWwindow* InitGLWindow(){
   // Initialise GLFW
