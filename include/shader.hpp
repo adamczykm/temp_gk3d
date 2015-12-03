@@ -1,26 +1,30 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <cstdlib>
+#include <iostream>
 #include <GL/glew.h>
 #include <map>
 #include <glm/glm.hpp>
 
 class Shader {
 
+  GLuint _program_id;
+
+  Shader(GLuint pid) : _program_id(pid) {}
+
 public:
 
-  GLuint Index;
+  static Shader FromAssets(const char* vertex_shader_asset,
+                           const char* fragment_shader_asset);
 
-  Shader(const char * vertex_file_path, const char * fragment_file_path);
+  static Shader FromAssets(std::string vertex_shader_asset,
+                           std::string fragment_shader_asset);
 
-  Shader(std::string vertex_file_path, std::string fragment_file_path) :
-    Shader(vertex_file_path.c_str(), fragment_file_path.c_str()) {};
 
-  void BindParameter(const char* key, float value);
-
-  void BindParameter(const char* key, glm::vec3 value);
-
-  void BindParameter(const char* key, glm::mat4 value);
+  void BindUniform(const char* key, float value);
+  void BindUniform(const char* key, glm::vec3 value);
+  void BindUniform(const char* key, glm::mat4 value);
 
 };
 
